@@ -1,4 +1,4 @@
-"""Wake-on-LAN (§5.9) — a magic packet, no router login, no privileges.
+"""Wake-on-LAN — a magic packet, no router login, no privileges.
 
 The packet is six 0xFF bytes followed by the target MAC repeated sixteen times.
 It is not addressed to the device (a sleeping device has no IP), it is broadcast

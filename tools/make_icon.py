@@ -22,7 +22,7 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "vantage.ico"
 
-# --accent from the design tokens (§6), with a slight vertical fall for depth.
+# App accent with a slight vertical fall for depth.
 TOP = (92, 119, 255)
 BOTTOM = (59, 79, 224)
 MARK = (255, 255, 255, 255)

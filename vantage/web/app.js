@@ -455,7 +455,7 @@ function renderRisk(risk, device) {
   host.innerHTML = banner + rows + note;
 }
 
-/* ---------- presence timeline (§5.8) ---------- */
+/* ---------- presence timeline ---------- */
 
 function renderTimeline(segments) {
   const host = $('detail-timeline');
@@ -708,7 +708,7 @@ function bindUI() {
     }
   });
 
-  /* Export menu (§5.10) */
+  /* Export menu */
   $('btn-export').addEventListener('click', (e) => {
     e.stopPropagation();
     const open = $('export-menu').classList.toggle('is-open');

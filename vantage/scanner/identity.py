@@ -1,4 +1,4 @@
-"""Device identity: what kind of thing is this? (§5.3)
+"""Device identity: what kind of thing is this?
 
 Evidence is combined in order of how much it actually proves. An open port is a
 statement about what a device *does* and beats a vendor guess — Apple makes

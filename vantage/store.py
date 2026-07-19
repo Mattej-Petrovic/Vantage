@@ -1,4 +1,4 @@
-"""SQLite persistence — the full §4 schema, WAL mode, thread-safe.
+"""SQLite persistence — app schema, WAL mode, thread-safe.
 
 Phase 1 writes devices / device_ips / observations / settings; ports and alerts
 are created now so later phases need no migration.
@@ -362,7 +362,7 @@ class Store:
         return [dict(r) for r in rows]
 
     def presence_segments(self, mac: str, since: int | None = None) -> list[dict]:
-        """Collapse observations into up/down runs — the §5.8 timeline.
+        """Collapse observations into up/down runs for the timeline.
 
         Observations are one row per scan, so a device that was online all day
         is hundreds of rows saying the same thing. What the user wants to read

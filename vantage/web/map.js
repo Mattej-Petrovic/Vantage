@@ -541,7 +541,7 @@ const NetworkMap = (() => {
       ctx.setLineDash([]);
     }
 
-    // Posture is a ring around the node, never the node's own colour (§5.5).
+    // Posture is a ring around the node, never the node's own colour.
     // The fill already carries role and recency; overloading it with risk would
     // make an amber node ambiguous between "new here" and "worth a look".
     if (n.online && (n.risk === 'risk' || n.risk === 'watch')) {
@@ -670,7 +670,7 @@ const NetworkMap = (() => {
     return h / 1000;
   }
 
-  /* A PNG of the map as it stands (§5.10).
+  /* A PNG of the map as it stands.
 
      The live canvas is transparent — the page paints the backdrop behind it —
      so exporting it directly gives nodes floating on nothing, which turns into

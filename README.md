@@ -128,12 +128,9 @@ it early, on the assumption it was a simple flag, would have shipped something t
 off the wrong device. The research is not wasted when the answer turns out to be no. The
 research is what makes the no trustworthy.
 
-Removing it cost one rewritten spec section and one uninstall, because it had been
+Removing it cost one rewritten design note and one uninstall, because it had been
 designed behind a capability gate from the start and nothing else depended on it. That
 was not luck — that is what "optional" is supposed to mean.
-
-The full reasoning is preserved in [`SPEC.md` §8](SPEC.md), rewritten rather than
-deleted. A section that is deleted reads like it was never considered.
 
 ## Honest limitations
 
@@ -174,9 +171,8 @@ map is a 60fps physics animation and a render loop fighting a virtual DOM is a f
 does not need. State lives in SQLite. Four runtime dependencies. d3 and the fonts are
 vendored locally, so the app never makes an outbound request.
 
-The full architecture, data model, and the reasoning behind each choice is in
-[`SPEC.md`](SPEC.md) — written before the first line of code and published as it was
-written, with the places the build diverged marked inline.
+The app is intentionally small: local storage, local assets, a narrow backend API, and
+no network dependency beyond scanning the LAN you point it at.
 
 ## License
 

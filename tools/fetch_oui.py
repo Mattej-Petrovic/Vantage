@@ -1,4 +1,4 @@
-"""Fetch the IEEE OUI database into vantage/data/ (SPEC §7).
+"""Fetch the IEEE OUI database into vantage/data/.
 
 Run once after cloning, and again before packaging:
 

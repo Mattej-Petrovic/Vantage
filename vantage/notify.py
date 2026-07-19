@@ -1,4 +1,4 @@
-"""Windows toast delivery (§5.7), gated by the user's alert_delivery setting.
+"""Windows toast delivery, gated by the user's alert_delivery setting.
 
 Delivery is a setting because the alerts that matter are rare and the ones that
 don't are constant: a phone rejoining the Wi-Fi is not worth a notification, and

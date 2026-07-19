@@ -1,7 +1,7 @@
-"""Threaded TCP connect scan + light banner grab (SPEC §5.4).
+"""Threaded TCP connect scan + light banner grab.
 
 Plain `socket.connect_ex` on a thread pool: no raw sockets, no admin, no Npcap —
-the same constraint that shapes the sweep in §2. A connect scan is noisier than
+the same constraint that shapes the sweep. A connect scan is noisier than
 SYN scanning but it is the only kind available to an unprivileged process, and on
 your own LAN that trade is free.
 """
@@ -12,7 +12,7 @@ import socket
 import ssl
 from concurrent.futures import ThreadPoolExecutor
 
-# ~100 common ports (SPEC §10 leaves the exact list to execute). Ordered by how
+# ~100 common ports, ordered by how
 # likely they are to say something about *what a device is*, not by number.
 TOP_PORTS: tuple[int, ...] = (
     21, 22, 23, 25, 53, 67, 69, 80, 81, 88, 110, 111, 119, 123, 135, 137, 139,

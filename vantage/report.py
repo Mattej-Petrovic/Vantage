@@ -1,4 +1,4 @@
-"""Snapshot export (§5.10): the inventory and the map as one standalone file.
+"""Snapshot export: the inventory and the map as one standalone file.
 
 A report is read later, by someone who was not there when it was generated —
 often the person who wrote it, months on. That changes what it has to carry.

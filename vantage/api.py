@@ -139,14 +139,14 @@ class JsApi:
         }
 
     def wake(self, mac: str) -> dict:
-        """Send a Wake-on-LAN magic packet (§5.9)."""
+        """Send a Wake-on-LAN magic packet."""
         return self.monitor.wake(mac)
 
     def scan_ports(self, mac: str) -> dict:
         """Rescan one device's ports on demand, from the detail panel."""
         return self.monitor.scan_ports_now(mac)
 
-    # ---------- export (§5.10) ----------
+    # ---------- export ----------
 
     def export_snapshot(self, kind: str, map_png: str | None = None) -> dict:
         """Write the map as PNG, or the full inventory as a standalone report.

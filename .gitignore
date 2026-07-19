@@ -8,7 +8,7 @@ venv/
 build/
 dist/
 
-# IEEE OUI database — fetched at build time (see tools/fetch_oui.py, SPEC §7).
+# IEEE OUI database — fetched at build time.
 # Regenerable third-party data that changes weekly; not source.
 vantage/data/oui.csv
 
@@ -18,9 +18,9 @@ vantage/data/oui.csv
 *.db-shm
 *.log
 
-# Private, local-only. Not part of the published project.
-# CLAUDE.md points at a personal notes directory; DEVLOG.md contains scan output
-# from my own network. Both stay on disk, neither is published.
+# Private, local-only notes and agent workspaces.
 CLAUDE.md
 DEVLOG.md
+SPEC.md
+.agents/
 .claude/

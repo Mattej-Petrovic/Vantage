@@ -1,4 +1,4 @@
-"""Per-device risk scoring (§5.4) — deterministic rules, no model, no guessing.
+"""Per-device risk scoring — deterministic rules, no model, no guessing.
 
 Two properties matter more than the rule list itself:
 

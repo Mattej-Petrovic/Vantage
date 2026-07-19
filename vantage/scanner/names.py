@@ -1,4 +1,4 @@
-"""Hostname resolution: mDNS, SSDP/UPnP and NetBIOS (SPEC §5.3).
+"""Hostname resolution: mDNS, SSDP/UPnP and NetBIOS.
 
 All three are plain UDP from an ephemeral port — no admin, no driver, no extra
 dependency. We already know the IP addresses; what we want is a name for each

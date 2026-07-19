@@ -1,4 +1,4 @@
-"""System tray icon (§5.7): the app keeps watching after the window closes.
+"""System tray icon: the app keeps watching after the window closes.
 
 This is what turns Vantage from a viewer into a monitor. Closing the window
 hides it and the scan loop keeps running; only Quit from this menu actually
@@ -17,7 +17,7 @@ import threading
 
 from PIL import Image, ImageDraw
 
-ACCENT = (79, 107, 255, 255)   # --accent from the design tokens (§6)
+ACCENT = (79, 107, 255, 255)
 MUTED = (120, 130, 160, 255)
 
 _NOTCH = math.radians(322)     # upper right, where the sweep needle exits

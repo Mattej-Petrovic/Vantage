@@ -2,7 +2,7 @@
 
 The window is a view onto a monitor that outlives it. Closing the window hides
 it and the scan loop keeps running from the tray; only Quit ends the process.
-That is the §5.7 behaviour, and it is also the only thing that makes the alerts
+That is the intended tray behaviour, and it is also the only thing that makes the alerts
 worth anything — an alert about a device that joined while the app was shut is
 an alert nobody gets.
 """
