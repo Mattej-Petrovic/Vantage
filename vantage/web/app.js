@@ -74,7 +74,6 @@ async function boot() {
     $('set-dbpath').textContent = initial.db_path || '';
     applySnapshot(initial.snapshot);
     hintOnce('Drag to pan · scroll to zoom · click a node for details');
-    api()?.ui_ready();
   } catch (err) {
     console.error('boot render failed', err);
   }
@@ -643,9 +642,7 @@ function applyAlertSettings() {
 /* ---------- events ---------- */
 
 function bindUI() {
-  /* Frameless window: our title bar owns the window controls. */
-  bindWindowDrag();
-  bindWindowResize();
+  /* Native window chrome owns movement and resizing. */
   $('win-min').addEventListener('click', () => api()?.window_minimize());
   $('win-close').addEventListener('click', () => api()?.window_close());
   $('win-max').addEventListener('click', async () => {
@@ -887,92 +884,6 @@ function bindUI() {
 
   // Keep "scanned N ago" honest without waiting for the next scan.
   setInterval(renderStatus, 15000);
-}
-
-function bindWindowDrag() {
-  const titlebar = document.querySelector('.titlebar');
-  let drag = null;
-  let pending = null;
-  let scheduled = false;
-
-  function flush() {
-    scheduled = false;
-    if (!pending) return;
-    api()?.window_move_by(pending.dx, pending.dy);
-    pending = null;
-  }
-
-  function queue(dx, dy) {
-    pending = pending
-      ? { dx: pending.dx + dx, dy: pending.dy + dy }
-      : { dx, dy };
-    if (!scheduled) {
-      scheduled = true;
-      requestAnimationFrame(flush);
-    }
-  }
-
-  titlebar.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || e.target.closest('button, select, input')) return;
-    drag = { x: e.screenX, y: e.screenY };
-    titlebar.setPointerCapture(e.pointerId);
-  });
-
-  titlebar.addEventListener('pointermove', (e) => {
-    if (!drag) return;
-    const dx = e.screenX - drag.x;
-    const dy = e.screenY - drag.y;
-    if (dx || dy) queue(dx, dy);
-    drag = { x: e.screenX, y: e.screenY };
-  });
-
-  const end = () => { drag = null; flush(); };
-  titlebar.addEventListener('pointerup', end);
-  titlebar.addEventListener('pointercancel', end);
-}
-
-function bindWindowResize() {
-  let drag = null;
-  let pending = null;
-  let scheduled = false;
-
-  function flush() {
-    scheduled = false;
-    if (!pending) return;
-    api()?.window_resize_by(pending.edge, pending.dx, pending.dy);
-    pending = null;
-  }
-
-  function queue(edge, dx, dy) {
-    pending = pending && pending.edge === edge
-      ? { edge, dx: pending.dx + dx, dy: pending.dy + dy }
-      : { edge, dx, dy };
-    if (!scheduled) {
-      scheduled = true;
-      requestAnimationFrame(flush);
-    }
-  }
-
-  document.querySelectorAll('[data-resize]').forEach((handle) => {
-    handle.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      drag = { edge: handle.dataset.resize, x: e.screenX, y: e.screenY };
-      handle.setPointerCapture(e.pointerId);
-    });
-
-    handle.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const dx = e.screenX - drag.x;
-      const dy = e.screenY - drag.y;
-      if (dx || dy) queue(drag.edge, dx, dy);
-      drag = { edge: drag.edge, x: e.screenX, y: e.screenY };
-    });
-
-    const end = () => { drag = null; flush(); };
-    handle.addEventListener('pointerup', end);
-    handle.addEventListener('pointercancel', end);
-  });
 }
 
 /* ---------- helpers ---------- */

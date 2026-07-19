@@ -9,7 +9,6 @@ import time
 from pathlib import Path
 
 import webview
-from webview.window import FixPoint
 
 from . import report
 from .monitor import Monitor
@@ -30,7 +29,6 @@ class JsApi:
         # instead of quitting when monitoring should continue in the background.
         self.on_close_request = None
         self.on_paused_changed = None
-        self.on_ui_ready = None
         self.toast_available = False
 
     def attach(self, window) -> None:
@@ -80,39 +78,6 @@ class JsApi:
             self.on_close_request()
         elif self.window:
             self.window.destroy()
-        return True
-
-    def window_move_by(self, dx: int, dy: int) -> bool:
-        if not self.window:
-            return False
-        self.window.move(int(self.window.x + dx), int(self.window.y + dy))
-        return True
-
-    def window_resize_by(self, edge: str, dx: int, dy: int) -> bool:
-        if not self.window:
-            return False
-
-        min_width, min_height = 1100, 680
-        width, height = int(self.window.width), int(self.window.height)
-        fix_point = FixPoint.NORTH | FixPoint.WEST
-
-        if "e" in edge:
-            width += int(dx)
-        if "s" in edge:
-            height += int(dy)
-        if "w" in edge:
-            width -= int(dx)
-            fix_point |= FixPoint.EAST
-        if "n" in edge:
-            height -= int(dy)
-            fix_point |= FixPoint.SOUTH
-
-        self.window.resize(max(min_width, width), max(min_height, height), fix_point)
-        return True
-
-    def ui_ready(self) -> bool:
-        if self.on_ui_ready:
-            self.on_ui_ready()
         return True
 
     def get_initial(self) -> dict:

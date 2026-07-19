@@ -42,6 +42,8 @@ def main() -> int:
     notifier = Notifier(store)
     tray: Tray | None = None
     tray_available = False
+    quitting = False
+    monitor_started = False
 
     def on_event(event: dict) -> None:
         # Events can fire before the window exists; hold them until it does.
@@ -80,8 +82,8 @@ def main() -> int:
         min_size=MIN_SIZE,
         background_color="#0E1016",
         text_select=False,
-        frameless=True,      # we draw our own title bar (see web/index.html)
-        easy_drag=False,     # only the title bar drags, not the whole map
+        frameless=False,
+        resizable=True,
     )
     api.attach(window)
 
@@ -95,6 +97,8 @@ def main() -> int:
             pass
 
     def quit_app() -> None:
+        nonlocal quitting
+        quitting = True
         if tray:
             tray.stop()
         monitor.stop()
@@ -114,7 +118,7 @@ def main() -> int:
     )
 
     def request_close() -> None:
-        """The title bar's X. Hide to the tray unless the user turned that off."""
+        """Hide to the tray unless the user turned that off."""
         if store.get_setting("close_to_tray", "on") == "on" and tray_available:
             window.hide()
         else:
@@ -124,10 +128,24 @@ def main() -> int:
     api.on_paused_changed = lambda paused: tray and tray.set_paused(paused)
 
     def on_start() -> None:
+        nonlocal monitor_started
+        if monitor_started:
+            return
+        monitor_started = True
         for event in pending:
             api.push(event)
         pending.clear()
         monitor.start()
+
+    def on_closing() -> bool:
+        nonlocal quitting
+        if quitting:
+            return True
+        if store.get_setting("close_to_tray", "on") == "on" and tray_available:
+            window.hide()
+            return False
+        quitting = True
+        return True
 
     def on_closed() -> None:
         # Reached when the window is genuinely destroyed, not when hidden.
@@ -136,8 +154,9 @@ def main() -> int:
             tray.stop()
         store.close()
 
+    window.events.loaded += on_start
+    window.events.closing += on_closing
     window.events.closed += on_closed
-    api.on_ui_ready = on_start
 
     tray_available = tray.start()
     if not tray_available:
