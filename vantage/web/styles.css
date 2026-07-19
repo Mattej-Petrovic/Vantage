@@ -336,6 +336,8 @@ button { cursor: pointer; border: none; background: none; padding: 0; }
 .select .chevron {
   position: absolute;
   right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 13px;
   height: 13px;
   pointer-events: none;

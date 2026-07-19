@@ -170,6 +170,24 @@ function applySnapshot(snapshot) {
   }
 }
 
+function resetNetworkViewForScan() {
+  state.devices = [];
+  state.byMac = new Map();
+  state.gateway = null;
+  selectDevice(null);
+  state.status = {
+    ...(state.status || {}),
+    scanning: true,
+    error: null,
+    online_count: 0,
+  };
+  NetworkMap.setDevices([], null);
+  applySnapshot.fitted = false;
+  renderStatus();
+  renderList();
+  $('map-empty').classList.remove('is-hidden');
+}
+
 /* ---------- top bar ---------- */
 
 function renderStatus() {
@@ -792,10 +810,8 @@ function bindUI() {
   });
 
   $('iface-select').addEventListener('change', (e) => {
+    resetNetworkViewForScan();
     api()?.select_interface(e.target.value);
-    state.devices = [];
-    renderList();
-    $('map-empty').classList.remove('is-hidden');
   });
 
   $('detail-rename').addEventListener('change', (e) => {

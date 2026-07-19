@@ -53,6 +53,7 @@ class Monitor:
         self._wake = threading.Event()
         self._lock = threading.RLock()
         self._first_scan = True
+        self._scan_generation = 0
 
     # ---------- lifecycle ----------
 
@@ -107,6 +108,8 @@ class Monitor:
         return self.interfaces
 
     def select_interface(self, interface_id: str) -> bool:
+        if not self.interfaces:
+            self.refresh_interfaces()
         match = next((i for i in self.interfaces if i["id"] == interface_id), None)
         if not match:
             return False
@@ -116,6 +119,10 @@ class Monitor:
             # Switching subnets rebuilds the picture from nothing, so the next
             # scan is a baseline for the same reason a fresh launch is.
             self._session_baseline = True
+            self._first_scan = True
+            self.last_scan_ts = None
+            self.error = None
+            self._scan_generation += 1
         self.store.set_setting("interface_id", interface_id)
         self.rescan()
         return True
@@ -126,9 +133,12 @@ class Monitor:
         """One full cycle. Returns the snapshot it produced."""
         if not self.interface:
             self.refresh_interfaces()
-        iface = self.interface
+        with self._lock:
+            iface = self.interface
+            generation = self._scan_generation
         if not iface:
             raise RuntimeError("No active network interface with a default gateway")
+        iface_id = iface.get("id")
 
         first_scan = self._first_scan
         self.scanning = True
@@ -177,6 +187,15 @@ class Monitor:
                     "is_local": is_local,
                     "is_new": is_new,
                 }
+
+            with self._lock:
+                stale = (
+                    generation != self._scan_generation
+                    or not self.interface
+                    or self.interface.get("id") != iface_id
+                )
+            if stale:
+                return self.empty_snapshot()
 
             # Everything present on the very first scan is the existing
             # inventory, not an intrusion. Anything appearing after that

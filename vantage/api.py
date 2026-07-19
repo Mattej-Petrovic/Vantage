@@ -138,8 +138,10 @@ class JsApi:
         return True
 
     def select_interface(self, interface_id: str) -> bool:
-        self._request_scan_async()
-        return self.monitor.select_interface(interface_id)
+        selected = self.monitor.select_interface(interface_id)
+        if selected:
+            self._request_scan_async()
+        return selected
 
     def rename_device(self, mac: str, name: str) -> bool:
         self.store.set_custom_name(mac, (name or "").strip() or None)
