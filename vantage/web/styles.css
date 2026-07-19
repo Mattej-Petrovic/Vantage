@@ -183,7 +183,40 @@ button { cursor: pointer; border: none; background: none; padding: 0; }
   grid-template-rows: var(--titlebar-h) var(--toolbar-h) 1fr;
   height: 100vh;
   background: var(--surface);
+  position: relative;
 }
+
+.resize-edge,
+.resize-corner {
+  position: fixed;
+  z-index: 100;
+}
+.resize-n,
+.resize-s {
+  left: 8px;
+  right: 8px;
+  height: 8px;
+  cursor: ns-resize;
+}
+.resize-n { top: 0; }
+.resize-s { bottom: 0; }
+.resize-e,
+.resize-w {
+  top: 8px;
+  bottom: 8px;
+  width: 8px;
+  cursor: ew-resize;
+}
+.resize-e { right: 0; }
+.resize-w { left: 0; }
+.resize-corner {
+  width: 14px;
+  height: 14px;
+}
+.resize-ne { top: 0; right: 0; cursor: nesw-resize; }
+.resize-se { bottom: 0; right: 0; cursor: nwse-resize; }
+.resize-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.resize-nw { top: 0; left: 0; cursor: nwse-resize; }
 
 .workspace {
   display: grid;

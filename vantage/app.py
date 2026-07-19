@@ -10,7 +10,6 @@ an alert nobody gets.
 from __future__ import annotations
 
 import sys
-import threading
 
 import webview
 
@@ -138,7 +137,7 @@ def main() -> int:
         store.close()
 
     window.events.closed += on_closed
-    threading.Timer(0.4, on_start).start()
+    api.on_ui_ready = on_start
 
     tray_available = tray.start()
     if not tray_available:
