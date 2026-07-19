@@ -74,6 +74,7 @@ async function boot() {
     $('set-dbpath').textContent = initial.db_path || '';
     applySnapshot(initial.snapshot);
     hintOnce('Drag to pan · scroll to zoom · click a node for details');
+    api()?.ui_ready();
   } catch (err) {
     console.error('boot render failed', err);
   }

@@ -54,8 +54,6 @@ class Monitor:
         self._lock = threading.RLock()
         self._first_scan = True
 
-        self.refresh_interfaces()
-
     # ---------- lifecycle ----------
 
     def start(self) -> None:
@@ -132,12 +130,12 @@ class Monitor:
         if not iface:
             raise RuntimeError("No active network interface with a default gateway")
 
+        first_scan = self._first_scan
         self.scanning = True
         self.error = None
         self._emit({"type": "status", "status": self.status()})
         try:
             hosts = interfaces.hosts_for(iface)
-            first_scan = self._first_scan
             alive = (
                 sweep.neighbor_snapshot_interface(iface, hosts)
                 if first_scan
@@ -511,6 +509,15 @@ class Monitor:
             "interface": self.interface,
             "interfaces": self.interfaces,
             "online_count": len(self.online),
+        }
+
+    def empty_snapshot(self) -> dict:
+        return {
+            "devices": [],
+            "gateway": self.interface.get("gateway") if self.interface else None,
+            "status": self.status(),
+            "alerts": [],
+            "unread_alerts": 0,
         }
 
     def snapshot(self, devices: dict[str, dict] | None = None) -> dict:

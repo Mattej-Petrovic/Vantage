@@ -29,6 +29,7 @@ class JsApi:
         # instead of quitting when monitoring should continue in the background.
         self.on_close_request = None
         self.on_paused_changed = None
+        self.on_ui_ready = None
         self.toast_available = False
 
     def attach(self, window) -> None:
@@ -82,12 +83,21 @@ class JsApi:
 
     def get_initial(self) -> dict:
         return {
-            "snapshot": self.monitor.snapshot(),
+            "snapshot": self.monitor.empty_snapshot(),
             "settings": self.store.get_settings(),
             "db_path": str(db_path()),
             # The settings UI must not offer toasts it cannot deliver.
             "toast_available": self.toast_available,
         }
+
+    def ui_ready(self) -> bool:
+        if self.on_ui_ready:
+            threading.Thread(
+                target=self.on_ui_ready,
+                name="vantage-ui-ready",
+                daemon=True,
+            ).start()
+        return True
 
     def get_snapshot(self) -> dict:
         return self.monitor.snapshot()

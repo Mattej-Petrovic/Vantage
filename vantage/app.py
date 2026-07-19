@@ -45,6 +45,8 @@ def main() -> int:
     tray_available = False
     quitting = False
     monitor_started = False
+    services_started = False
+    services_lock = threading.Lock()
     start_timer: threading.Timer | None = None
     startup_timer: threading.Timer | None = None
 
@@ -71,10 +73,6 @@ def main() -> int:
 
     monitor = Monitor(store, on_event=on_event)
     api = JsApi(store, monitor)
-
-    # Measured at ~0.1s: win11toast defers the WinRT imports itself, so probing
-    # it here costs nothing worth deferring.
-    api.toast_available = notifier.available
 
     window = webview.create_window(
         WINDOW_TITLE,
@@ -130,6 +128,28 @@ def main() -> int:
     api.on_close_request = request_close
     api.on_paused_changed = lambda paused: tray and tray.set_paused(paused)
 
+    def start_services() -> None:
+        nonlocal services_started, tray_available
+        with services_lock:
+            if services_started:
+                return
+            services_started = True
+
+        tray_available = tray.start()
+        if not tray_available:
+            # No tray means no background monitoring, so closing the window has
+            # to mean quitting — hiding it would leave a process nobody can
+            # reach.
+            store.set_setting("close_to_tray", "off")
+
+        on_start()
+        # Toast probing imports WinRT plumbing, so keep it off the UI startup
+        # path and behind monitor startup. Notification sends still lazy-load
+        # it if this has not finished.
+        api.toast_available = notifier.available
+
+    api.on_ui_ready = start_services
+
     def on_start() -> None:
         nonlocal monitor_started, start_timer
         if monitor_started:
@@ -138,9 +158,9 @@ def main() -> int:
         for event in pending:
             api.push(event)
         pending.clear()
-        # Give WebView a moment to paint the shell before the first LAN sweep
-        # starts doing concurrent network I/O.
-        start_timer = threading.Timer(1.5, monitor.start)
+        # Let the WebView finish its first paint and become interactive before
+        # the first LAN sweep starts doing network I/O.
+        start_timer = threading.Timer(6.0, monitor.start)
         start_timer.daemon = True
         start_timer.start()
 
@@ -168,13 +188,7 @@ def main() -> int:
     window.events.closing += on_closing
     window.events.closed += on_closed
 
-    tray_available = tray.start()
-    if not tray_available:
-        # No tray means no background monitoring, so closing the window has to
-        # mean quitting — hiding it would leave a process nobody can reach.
-        store.set_setting("close_to_tray", "off")
-
-    startup_timer = threading.Timer(1.0, on_start)
+    startup_timer = threading.Timer(12.0, start_services)
     startup_timer.daemon = True
     startup_timer.start()
 
