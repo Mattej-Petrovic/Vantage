@@ -1,0 +1,9 @@
+pywebview>=5.0
+# Phase 2 identity (mDNS/SSDP/NetBIOS) uses only the standard library —
+# see DEVLOG for why zeroconf, listed in SPEC §7, is not used.
+pystray>=0.19
+Pillow>=10.0
+win11toast>=0.35
+# Wake-on-LAN and risk scoring are stdlib only — no dependency for either.
+# No dependency for the Sagemcom block: it was reverse-engineered, then dropped
+# as out of scope. See SPEC 8 and the Phase 5 entry in DEVLOG.

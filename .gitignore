@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Build output
+build/
+dist/
+
+# IEEE OUI database — fetched at build time (see tools/fetch_oui.py, SPEC §7).
+# Regenerable third-party data that changes weekly; not source.
+vantage/data/oui.csv
+
+# Local databases and logs
+*.db
+*.db-wal
+*.db-shm
+*.log
+
+# Private, local-only. Not part of the published project.
+# CLAUDE.md points at a personal notes directory; DEVLOG.md contains scan output
+# from my own network. Both stay on disk, neither is published.
+CLAUDE.md
+DEVLOG.md
+.claude/

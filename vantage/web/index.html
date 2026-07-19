@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vantage</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app" id="app">
+
+    <div class="titlebar">
+      <span class="titlebar-title" id="titlebar-title"></span>
+      <div class="titlebar-spacer"></div>
+      <div class="win-controls">
+        <button class="win-btn" id="win-min" title="Minimize" aria-label="Minimize" data-icon="win-min"></button>
+        <button class="win-btn" id="win-max" title="Maximize" aria-label="Maximize" data-icon="win-max"></button>
+        <button class="win-btn is-close" id="win-close" title="Close" aria-label="Close" data-icon="win-close"></button>
+      </div>
+    </div>
+
+    <header class="toolbar">
+      <div class="brand">
+        <div class="brand-mark" data-icon="radar"></div>
+        <div class="brand-name">Vantage</div>
+      </div>
+
+      <div class="select" title="Network interface to scan">
+        <select id="iface-select" aria-label="Network interface to scan"></select>
+        <span class="chevron" data-icon="chevron-down"></span>
+      </div>
+
+      <div class="status-chip" id="status-chip" data-state="idle">
+        <span class="status-dot"></span>
+        <span id="status-text">Starting…</span>
+      </div>
+
+      <div class="toolbar-spacer"></div>
+
+      <div class="stat">
+        <div class="stat-value is-accent" id="count-online">0</div>
+        <div class="stat-label">Online</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="count-total">0</div>
+        <div class="stat-label">Known</div>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <button class="icon-btn" id="btn-rescan" title="Scan now (Ctrl+R)" aria-label="Scan now (Ctrl+R)" data-icon="refresh"></button>
+      <button class="icon-btn" id="btn-alerts" title="Activity" aria-label="Activity" data-icon="bell"></button>
+      <div class="menu-wrap">
+        <button class="icon-btn" id="btn-export" title="Export" aria-label="Export" data-icon="download"></button>
+        <div class="menu" id="export-menu">
+          <button class="menu-item" data-export="html">
+            <span data-icon="file"></span>
+            <span><strong>Report</strong><em>Inventory, posture and map, one HTML file</em></span>
+          </button>
+          <button class="menu-item" data-export="png">
+            <span data-icon="image"></span>
+            <span><strong>Map image</strong><em>The map exactly as it looks now</em></span>
+          </button>
+        </div>
+      </div>
+      <button class="icon-btn" id="btn-theme" title="Toggle theme" aria-label="Toggle theme" data-icon="moon"></button>
+      <button class="icon-btn" id="btn-settings" title="Settings" aria-label="Settings" data-icon="settings"></button>
+    </header>
+
+    <div class="workspace">
+
+      <aside class="sidebar">
+        <div class="search-wrap">
+          <span class="search-icon" data-icon="search"></span>
+          <input type="text" id="search" placeholder="Search devices, IPs, MACs…"
+                 aria-label="Search devices" spellcheck="false" />
+        </div>
+        <div class="filters" id="filters">
+          <button class="chip is-active" data-filter="all">All</button>
+          <button class="chip" data-filter="online">Online</button>
+          <button class="chip" data-filter="new">New</button>
+          <button class="chip" data-filter="risk">Risk</button>
+          <button class="chip" data-filter="offline">Offline</button>
+        </div>
+        <div class="list-section">
+          <span class="micro-label">Devices</span>
+          <span class="micro-label" id="list-count"></span>
+        </div>
+        <div class="device-list" id="device-list"></div>
+      </aside>
+
+      <main class="map-region" id="map-region">
+        <canvas id="map"></canvas>
+
+        <div class="map-empty" id="map-empty">
+          <div class="radar" role="presentation"><span class="radar-sweep"></span></div>
+          <h2>Mapping your network</h2>
+          <p>Pinging every host on the subnet. Devices appear the moment they answer.</p>
+        </div>
+
+        <div class="map-overlay">
+          <div class="map-hint glass" id="map-hint"></div>
+          <div class="tooltip" id="tooltip">
+            <div class="tooltip-name" id="tooltip-name"></div>
+            <div class="tooltip-sub mono" id="tooltip-sub"></div>
+          </div>
+
+          <div class="map-legend glass">
+            <div class="legend-item"><span class="legend-swatch" style="background:var(--accent)"></span>Router</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:var(--watch)"></span>New</div>
+            <div class="legend-item"><span class="legend-swatch is-ring" style="border-color:var(--watch)"></span>Watch</div>
+            <div class="legend-item"><span class="legend-swatch is-ring" style="border-color:var(--risk)"></span>Risk</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:var(--ok)"></span>Trusted</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:var(--map-offline)"></span>Offline</div>
+          </div>
+
+          <div class="map-controls glass">
+            <button class="icon-btn" id="btn-zoom-in" title="Zoom in" aria-label="Zoom in" data-icon="plus"></button>
+            <button class="icon-btn" id="btn-zoom-out" title="Zoom out" aria-label="Zoom out" data-icon="minus"></button>
+            <button class="icon-btn" id="btn-fit" title="Fit to view" aria-label="Fit to view" data-icon="maximize"></button>
+          </div>
+        </div>
+
+        <div class="drawer" id="alerts-drawer">
+          <div class="drawer-head">
+            <span>Activity</span>
+            <button class="icon-btn" id="btn-clear-alerts" title="Mark all as read" aria-label="Mark all as read" data-icon="check"></button>
+          </div>
+          <div class="drawer-body" id="alerts-body"></div>
+        </div>
+
+        <div class="toast-stack" id="toast-stack"></div>
+      </main>
+
+      <aside class="detail" id="detail">
+        <div class="detail-head">
+          <div class="detail-icon" id="detail-icon"></div>
+          <div class="detail-title">
+            <div class="detail-name" id="detail-name">—</div>
+            <div class="detail-vendor" id="detail-vendor">—</div>
+          </div>
+          <button class="icon-btn" id="btn-close-detail" title="Close" aria-label="Close" data-icon="x"></button>
+        </div>
+
+        <div class="detail-body" id="detail-body">
+          <div class="detail-pills" id="detail-pills"></div>
+
+          <div class="field-group">
+            <div class="micro-label">Name</div>
+            <input class="name-input" id="detail-rename" placeholder="Give this device a name" spellcheck="false" />
+          </div>
+
+          <div class="field-group">
+            <div class="micro-label">Trust</div>
+            <div class="segmented" id="detail-trust">
+              <button data-trust="trusted">Trusted</button>
+              <button data-trust="unknown">Unknown</button>
+              <button data-trust="blocked">Blocked</button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="risk-head">
+              <span class="micro-label">Security posture</span>
+              <span class="risk-score mono" id="detail-risk-score"></span>
+            </div>
+            <div class="risk-card" id="detail-risk"></div>
+          </div>
+
+          <div class="field-group">
+            <div class="micro-label">Identity</div>
+            <dl class="kv" id="detail-kv"></dl>
+          </div>
+
+          <div class="field-group">
+            <div class="micro-label">Presence</div>
+            <div class="timeline-card">
+              <div class="timeline" id="detail-timeline"></div>
+              <div class="timeline-label" id="detail-timeline-label"></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="micro-label">Responsiveness</div>
+            <div class="spark-card">
+              <svg class="sparkline" id="detail-spark" preserveAspectRatio="none"></svg>
+              <div class="spark-label" id="detail-spark-label"></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="ports-head">
+              <span class="micro-label">Open ports</span>
+              <button class="link-btn" id="btn-scan-ports">Scan now</button>
+            </div>
+            <div class="ports" id="detail-ports"></div>
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <button class="btn" id="btn-locate">Center on map</button>
+          <button class="btn" id="btn-wake" title="Send a Wake-on-LAN magic packet">Wake</button>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <span>Settings</span>
+        <button class="icon-btn" id="btn-close-settings" title="Close" aria-label="Close settings" data-icon="x"></button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Scan interval</div>
+            <div class="setting-hint">How often Vantage sweeps the subnet</div>
+          </div>
+          <div class="range-wrap">
+            <input type="range" id="set-interval" min="10" max="300" step="5" />
+            <span class="mono" id="set-interval-value" style="font-size:13px;width:40px;text-align:right"></span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Theme</div>
+            <div class="setting-hint">Follow Windows or pick one</div>
+          </div>
+          <div class="segmented" id="set-theme" style="width:200px">
+            <button data-theme-choice="light">Light</button>
+            <button data-theme-choice="dark">Dark</button>
+            <button data-theme-choice="system">Auto</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Port scanning</div>
+            <div class="setting-hint">Probe ~110 common TCP ports to identify services</div>
+          </div>
+          <div class="segmented" id="set-portscan" style="width:140px">
+            <button data-portscan="on">On</button>
+            <button data-portscan="off">Off</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Alerts</div>
+            <div class="setting-hint" id="set-delivery-hint">Where changes on the network are announced</div>
+          </div>
+          <div class="segmented" id="set-delivery" style="width:270px">
+            <button data-delivery="off">Off</button>
+            <button data-delivery="in_app">In-app</button>
+            <button data-delivery="toast">Toast</button>
+            <button data-delivery="both">Both</button>
+          </div>
+        </div>
+        <div class="setting-row" id="row-toast-extras">
+          <div>
+            <div class="setting-label">Also notify about</div>
+            <div class="setting-hint">New device alerts are always included</div>
+          </div>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="set-toast-port" /><span>New ports</span></label>
+            <label class="check"><input type="checkbox" id="set-toast-risk" /><span>Risk increases</span></label>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Keep watching in the background</div>
+            <div class="setting-hint">Closing the window hides it to the tray instead of quitting</div>
+          </div>
+          <div class="segmented" id="set-tray" style="width:140px">
+            <button data-tray="on">On</button>
+            <button data-tray="off">Off</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div style="min-width:0">
+            <div class="setting-label">Database</div>
+            <div class="setting-hint mono" id="set-dbpath" style="font-size:10.5px;word-break:break-all">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/d3-dispatch.min.js"></script>
+  <script src="vendor/d3-quadtree.min.js"></script>
+  <script src="vendor/d3-timer.min.js"></script>
+  <script src="vendor/d3-force.min.js"></script>
+  <script src="icons.js"></script>
+  <script src="map.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
