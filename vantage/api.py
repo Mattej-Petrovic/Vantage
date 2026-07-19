@@ -103,12 +103,30 @@ class JsApi:
     def get_snapshot(self) -> dict:
         return self.monitor.snapshot()
 
-    def rescan(self) -> bool:
-        if self.on_scan_request:
-            self.on_scan_request()
+    def _request_scan_async(self) -> None:
+        """Hand scan requests off after the JS bridge call has returned.
+
+        pywebview API calls originate on the webview side. Starting a scan can
+        immediately push status back into the window, and doing that reentrantly
+        while JavaScript is still awaiting the original call can stall the UI on
+        some Windows WebView runtimes.
+        """
+        target = self.on_scan_request
+        if target:
+            threading.Thread(
+                target=target,
+                name="vantage-scan-request",
+                daemon=True,
+            ).start()
         else:
-            self.monitor.start()
-            self.monitor.rescan()
+            def run() -> None:
+                self.monitor.start()
+                self.monitor.rescan()
+
+            threading.Thread(target=run, name="vantage-scan-request", daemon=True).start()
+
+    def rescan(self) -> bool:
+        self._request_scan_async()
         return True
 
     def set_paused(self, paused: bool) -> bool:
@@ -120,10 +138,7 @@ class JsApi:
         return True
 
     def select_interface(self, interface_id: str) -> bool:
-        if self.on_scan_request:
-            self.on_scan_request()
-        else:
-            self.monitor.start()
+        self._request_scan_async()
         return self.monitor.select_interface(interface_id)
 
     def rename_device(self, mac: str, name: str) -> bool:

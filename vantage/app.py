@@ -47,7 +47,7 @@ def main() -> int:
     monitor_started = False
     services_started = False
     services_lock = threading.Lock()
-    startup_timer: threading.Timer | None = None
+    scan_lock = threading.Lock()
 
     def on_event(event: dict) -> None:
         # Events can fire before the window exists; hold them until it does.
@@ -149,14 +149,20 @@ def main() -> int:
 
     def request_scan() -> None:
         nonlocal monitor_started
-        if monitor_started:
-            monitor.rescan()
-            return
-        monitor_started = True
-        for event in pending:
-            api.push(event)
-        pending.clear()
-        monitor.start()
+        with scan_lock:
+            if monitor_started:
+                monitor.rescan()
+                return
+            monitor_started = True
+            for event in pending:
+                api.push(event)
+            pending.clear()
+            monitor.start()
+        threading.Thread(
+            target=start_services,
+            name="vantage-services-start",
+            daemon=True,
+        ).start()
 
     def on_closing() -> bool:
         nonlocal quitting
@@ -170,8 +176,6 @@ def main() -> int:
 
     def on_closed() -> None:
         # Reached when the window is genuinely destroyed, not when hidden.
-        if startup_timer:
-            startup_timer.cancel()
         monitor.stop()
         if tray:
             tray.stop()
@@ -179,10 +183,6 @@ def main() -> int:
 
     window.events.closing += on_closing
     window.events.closed += on_closed
-
-    startup_timer = threading.Timer(20.0, start_services)
-    startup_timer.daemon = True
-    startup_timer.start()
 
     icon = icon_path()
     webview.start(debug="--debug" in sys.argv, icon=str(icon) if icon.exists() else None)
