@@ -189,6 +189,19 @@ function renderStatus() {
   else if (s.last_scan_ts) text.textContent = `Scanned ${timeAgo(s.last_scan_ts)}`;
   else text.textContent = 'Idle';
 
+  const empty = $('map-empty');
+  if (empty) {
+    empty.classList.toggle('is-scanning', !!s.scanning);
+    const title = empty.querySelector('h2');
+    const copy = empty.querySelector('p');
+    if (title) title.textContent = s.scanning ? 'Mapping your network' : 'Ready to map your network';
+    if (copy) {
+      copy.textContent = s.scanning
+        ? 'Pinging every host on the subnet. Devices appear the moment they answer.'
+        : 'Click Scan now when you want Vantage to discover devices on this subnet.';
+    }
+  }
+
   const online = state.devices.filter((d) => d.online).length;
   $('count-online').textContent = online;
   $('count-total').textContent = state.devices.length;

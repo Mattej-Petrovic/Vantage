@@ -704,7 +704,7 @@ button { cursor: pointer; border: none; background: none; padding: 0; }
   border-radius: 50%;
   border: 1.5px solid var(--accent);
   opacity: 0;
-  animation: radar-ping 2200ms linear infinite;
+  transform: scale(1);
 }
 .radar-sweep {
   position: absolute;
@@ -719,8 +719,14 @@ button { cursor: pointer; border: none; background: none; padding: 0; }
   );
   -webkit-mask: radial-gradient(circle at 50% 50%, #000 62%, transparent 100%);
   mask: radial-gradient(circle at 50% 50%, #000 62%, transparent 100%);
-  animation: radar-spin 2200ms linear infinite;
+  transform: rotate(-45deg);
   will-change: transform;
+}
+.map-empty.is-scanning .radar::after {
+  animation: radar-ping 2200ms linear infinite;
+}
+.map-empty.is-scanning .radar-sweep {
+  animation: radar-spin 2200ms linear infinite;
 }
 @keyframes radar-spin {
   from { transform: rotate(0deg); }
@@ -1357,9 +1363,10 @@ input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.18); }
   }
   /* Keep the scanner indicator moving even when decorative motion is reduced:
      here the motion is state feedback, not decoration. */
-  .radar-sweep, .radar::after {
+  .map-empty.is-scanning .radar-sweep,
+  .map-empty.is-scanning .radar::after {
     animation-duration: 2200ms !important;
   }
-  .radar-sweep { animation-name: radar-spin !important; }
-  .radar::after { animation-name: radar-ping !important; }
+  .map-empty.is-scanning .radar-sweep { animation-name: radar-spin !important; }
+  .map-empty.is-scanning .radar::after { animation-name: radar-ping !important; }
 }
