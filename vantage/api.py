@@ -30,6 +30,7 @@ class JsApi:
         self.on_close_request = None
         self.on_paused_changed = None
         self.on_ui_ready = None
+        self.on_scan_request = None
         self.toast_available = False
 
     def attach(self, window) -> None:
@@ -103,7 +104,11 @@ class JsApi:
         return self.monitor.snapshot()
 
     def rescan(self) -> bool:
-        self.monitor.rescan()
+        if self.on_scan_request:
+            self.on_scan_request()
+        else:
+            self.monitor.start()
+            self.monitor.rescan()
         return True
 
     def set_paused(self, paused: bool) -> bool:
@@ -115,6 +120,10 @@ class JsApi:
         return True
 
     def select_interface(self, interface_id: str) -> bool:
+        if self.on_scan_request:
+            self.on_scan_request()
+        else:
+            self.monitor.start()
         return self.monitor.select_interface(interface_id)
 
     def rename_device(self, mac: str, name: str) -> bool:

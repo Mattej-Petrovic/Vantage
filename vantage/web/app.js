@@ -1,5 +1,15 @@
 /* App state, panels, and the bridge to Python (pywebview JsApi). */
 
+const DEFAULT_SETTINGS = {
+  scan_interval: '30',
+  theme: 'system',
+  alert_delivery: 'in_app',
+  port_scan: 'on',
+  toast_new_port: 'off',
+  toast_risk_raised: 'off',
+  close_to_tray: 'on',
+};
+
 const state = {
   devices: [],
   byMac: new Map(),
@@ -10,7 +20,9 @@ const state = {
   selected: null,
   filter: 'all',
   query: '',
-  settings: {},
+  settings: { ...DEFAULT_SETTINGS },
+  settingsLoaded: false,
+  settingsLoading: false,
   ready: false,
   booting: false,
 };
@@ -36,6 +48,7 @@ window.addEventListener('DOMContentLoaded', () => {
   hydrateIcons();
   bindUI();
   NetworkMap.init($('map'), { onSelect: selectDevice, onHover: showTooltip });
+  boot();
 });
 
 window.addEventListener('pywebviewready', boot);
@@ -51,32 +64,44 @@ const bootTimer = setInterval(() => {
 
 async function boot() {
   if (state.ready || state.booting) return;
+  if (!$('map') || !$('status-chip')) return;
   state.booting = true;
 
-  let initial;
-  try {
-    initial = await api().get_initial();
-  } catch (err) {
-    console.error('get_initial failed, will retry', err);
-    state.booting = false;
-    return;
-  }
   state.ready = true;
   state.booting = false;
   clearInterval(bootTimer);
 
-  // Theme first, and never let a later failure leave the app unthemed.
-  state.settings = initial.settings || {};
-  state.toastAvailable = !!initial.toast_available;
+  // Startup must not wait on Python. The bridge can load settings later.
+  state.toastAvailable = false;
   applyTheme(state.settings.theme || 'system');
 
   try {
-    $('set-dbpath').textContent = initial.db_path || '';
-    applySnapshot(initial.snapshot);
+    applySnapshot({
+      devices: [],
+      gateway: null,
+      status: {},
+      alerts: [],
+      unread_alerts: 0,
+    });
     hintOnce('Drag to pan · scroll to zoom · click a node for details');
-    api()?.ui_ready();
   } catch (err) {
     console.error('boot render failed', err);
+  }
+}
+
+async function loadInitialFromBackend() {
+  if (state.settingsLoaded || state.settingsLoading || !api()) return;
+  state.settingsLoading = true;
+  try {
+    const initial = await api().get_initial();
+    state.settings = { ...DEFAULT_SETTINGS, ...(initial.settings || {}) };
+    state.toastAvailable = !!initial.toast_available;
+    $('set-dbpath').textContent = initial.db_path || '';
+    state.settingsLoaded = true;
+  } catch (err) {
+    console.error('get_initial failed', err);
+  } finally {
+    state.settingsLoading = false;
   }
 }
 
@@ -776,7 +801,8 @@ function bindUI() {
   });
 
   /* Settings modal */
-  $('btn-settings').addEventListener('click', () => {
+  $('btn-settings').addEventListener('click', async () => {
+    await loadInitialFromBackend();
     const interval = Number(state.settings.scan_interval || 30);
     $('set-interval').value = interval;
     $('set-interval-value').textContent = `${interval}s`;

@@ -1355,11 +1355,11 @@ input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.18); }
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-  /* Stop the loops outright rather than running them at 0.01ms forever, and leave
-     the radar as a legible static dial so "scanning" still reads. */
+  /* Keep the scanner indicator moving even when decorative motion is reduced:
+     here the motion is state feedback, not decoration. */
   .radar-sweep, .radar::after {
-    animation: none !important;
+    animation-duration: 2200ms !important;
   }
-  .radar-sweep { transform: rotate(-45deg); }
-  .radar::after { opacity: 0.35; transform: scale(1); }
+  .radar-sweep { animation-name: radar-spin !important; }
+  .radar::after { animation-name: radar-ping !important; }
 }

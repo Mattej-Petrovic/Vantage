@@ -47,7 +47,6 @@ def main() -> int:
     monitor_started = False
     services_started = False
     services_lock = threading.Lock()
-    start_timer: threading.Timer | None = None
     startup_timer: threading.Timer | None = None
 
     def on_event(event: dict) -> None:
@@ -113,7 +112,7 @@ def main() -> int:
 
     tray = Tray(
         on_open=open_window,
-        on_rescan=monitor.rescan,
+        on_rescan=lambda: request_scan(),
         on_toggle_pause=toggle_pause,
         on_quit=quit_app,
     )
@@ -142,27 +141,22 @@ def main() -> int:
             # reach.
             store.set_setting("close_to_tray", "off")
 
-        on_start()
-        # Toast probing imports WinRT plumbing, so keep it off the UI startup
-        # path and behind monitor startup. Notification sends still lazy-load
-        # it if this has not finished.
-        api.toast_available = notifier.available
+        # Toast delivery still lazy-loads WinRT on first use. Probing it during
+        # startup can stall Windows WebView startup on some machines.
 
-    api.on_ui_ready = start_services
+    api.on_ui_ready = lambda: None
+    api.on_scan_request = lambda: request_scan()
 
-    def on_start() -> None:
-        nonlocal monitor_started, start_timer
+    def request_scan() -> None:
+        nonlocal monitor_started
         if monitor_started:
+            monitor.rescan()
             return
         monitor_started = True
         for event in pending:
             api.push(event)
         pending.clear()
-        # Let the WebView finish its first paint and become interactive before
-        # the first LAN sweep starts doing network I/O.
-        start_timer = threading.Timer(6.0, monitor.start)
-        start_timer.daemon = True
-        start_timer.start()
+        monitor.start()
 
     def on_closing() -> bool:
         nonlocal quitting
@@ -178,8 +172,6 @@ def main() -> int:
         # Reached when the window is genuinely destroyed, not when hidden.
         if startup_timer:
             startup_timer.cancel()
-        if start_timer:
-            start_timer.cancel()
         monitor.stop()
         if tray:
             tray.stop()
@@ -188,7 +180,7 @@ def main() -> int:
     window.events.closing += on_closing
     window.events.closed += on_closed
 
-    startup_timer = threading.Timer(12.0, start_services)
+    startup_timer = threading.Timer(20.0, start_services)
     startup_timer.daemon = True
     startup_timer.start()
 
