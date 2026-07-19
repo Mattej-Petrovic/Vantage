@@ -12,6 +12,7 @@ have the main thread.
 
 from __future__ import annotations
 
+import math
 import threading
 
 from PIL import Image, ImageDraw
@@ -19,27 +20,57 @@ from PIL import Image, ImageDraw
 ACCENT = (79, 107, 255, 255)   # --accent from the design tokens (§6)
 MUTED = (120, 130, 160, 255)
 
+_NOTCH = math.radians(322)     # upper right, where the sweep needle exits
+_HALF_GAP = math.radians(30)
+
+
+def _arc(draw, cx, cy, r, start, end, width, fill):
+    """Arc with round caps — PIL leaves arc ends square, which looks cheap."""
+    draw.arc(
+        [cx - r, cy - r, cx + r, cy + r],
+        math.degrees(start), math.degrees(end),
+        fill=fill, width=width,
+    )
+    half = width / 2
+    for angle in (start, end):
+        px, py = cx + r * math.cos(angle), cy + r * math.sin(angle)
+        draw.ellipse([px - half, py - half, px + half, py + half], fill=fill)
+
 
 def _icon_image(paused: bool = False) -> Image.Image:
-    """The radar mark from the title bar, drawn at tray size.
+    """The radar mark, matching the app icon (see tools/make_icon.py).
 
-    Windows scales this down to 16px, so it is drawn at 64 and reduced — the
-    concentric rings survive that better than they survive being drawn small.
+    Drawn at 8x and reduced, because PIL does not antialias — at tray size the
+    difference between this and drawing directly is the difference between a
+    crisp mark and a jagged one. Transparent rather than tiled: this sits among
+    other tray glyphs on the taskbar, not on the wallpaper.
     """
-    size = 64
-    image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    size, ss = 32, 8
+    n = size * ss
+    image = Image.new("RGBA", (n, n), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
     color = MUTED if paused else ACCENT
-    center = size / 2
 
-    for radius, width in ((30, 4), (20, 4), (10, 4)):
-        draw.ellipse(
-            [center - radius, center - radius, center + radius, center + radius],
-            outline=color,
-            width=width,
-        )
-    draw.ellipse([center - 5, center - 5, center + 5, center + 5], fill=color)
-    return image
+    cx = cy = n / 2
+    scale = n / 24 * 0.92          # fills more of the box than the app icon does
+    stroke = max(round(2.3 * scale), 1)
+
+    _arc(draw, cx, cy, 9 * scale,
+         _NOTCH + _HALF_GAP, _NOTCH - _HALF_GAP + 2 * math.pi, stroke, color)
+    _arc(draw, cx, cy, 5.1 * scale,
+         _NOTCH + _HALF_GAP * 1.35, _NOTCH - _HALF_GAP * 1.35 + 2 * math.pi,
+         stroke, color)
+
+    reach = 11.2 * scale
+    tx, ty = cx + reach * math.cos(_NOTCH), cy + reach * math.sin(_NOTCH)
+    draw.line([cx, cy, tx, ty], fill=color, width=stroke)
+    tip = stroke / 2
+    draw.ellipse([tx - tip, ty - tip, tx + tip, ty + tip], fill=color)
+
+    dot = max(1.7 * scale, stroke * 0.95)
+    draw.ellipse([cx - dot, cy - dot, cx + dot, cy + dot], fill=color)
+
+    return image.resize((size, size), Image.LANCZOS)
 
 
 class Tray:

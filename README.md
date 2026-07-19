@@ -11,29 +11,16 @@
 </p>
 
 <p align="center">
-  <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-0078D4" />
-  <img alt="Python" src="https://img.shields.io/badge/python-3.12-3776AB" />
-  <img alt="No admin required" src="https://img.shields.io/badge/admin_rights-not_required-0E9F6E" />
-  <img alt="No driver" src="https://img.shields.io/badge/npcap-not_required-0E9F6E" />
-  <img alt="Offline" src="https://img.shields.io/badge/cloud-none-0E9F6E" />
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-555" />
+  <strong>Windows 10/11</strong> ·
+  <strong>Python 3.12</strong> ·
+  <strong>No admin rights</strong> ·
+  <strong>No Npcap driver</strong> ·
+  <strong>No cloud</strong>
 </p>
 
-<!--
-  SCREENSHOTS — add these and delete this comment block to make them render:
-    docs/map-dark.png     the live map, dark theme, a populated network
-    docs/detail.png       a device selected, detail panel open with ports + risk
-    docs/report.png       the exported HTML report
-  Then uncomment:
-
-  <p align="center">
-    <img src="docs/map-dark.png" width="880" alt="The live network map" />
-  </p>
-  <p align="center">
-    <img src="docs/detail.png" width="440" alt="Device detail panel" />
-    <img src="docs/report.png" width="440" alt="Exported report" />
-  </p>
--->
+<p align="center">
+  <img src="docs/dashboard.png" width="920" alt="Vantage mapping a local network" />
+</p>
 
 ---
 
@@ -193,4 +180,8 @@ written, with the places the build diverged marked inline.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Copyright (c) 2025 Mattej Petrovic. All rights reserved.
+
+The source is public for viewing, educational review, and portfolio demonstration
+only. Use, modification, distribution, republication, and deployment are prohibited
+without explicit written permission. See [LICENSE](LICENSE).

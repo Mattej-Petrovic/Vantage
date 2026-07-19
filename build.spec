@@ -11,6 +11,13 @@ root = Path(SPECPATH)
 oui = root / "vantage" / "data" / "oui.csv"
 
 datas = [(str(root / "vantage" / "web"), "web")]
+icon = root / "docs" / "vantage.ico"
+if icon.exists():
+    datas.append((str(icon), "."))
+else:
+    print("build.spec: WARNING — docs/vantage.ico missing, "
+          "run `python tools/make_icon.py` before building.")
+
 if oui.exists():
     datas.append((str(oui), "data"))
 else:
@@ -54,5 +61,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=str(root / "docs" / "vantage.ico") if (root / "docs" / "vantage.ico").exists() else None,
+    icon=str(icon) if icon.exists() else None,
 )

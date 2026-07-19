@@ -17,16 +17,27 @@ import webview
 from .api import JsApi
 from .monitor import Monitor
 from .notify import Notifier
-from .paths import web_path
+from .paths import icon_path, web_path
 from .store import Store
 from .tray import Tray
 
 WINDOW_TITLE = "Vantage"
 MIN_SIZE = (1100, 680)
 DEFAULT_SIZE = (1440, 900)
+APP_USER_MODEL_ID = "MattejPetrovic.Vantage"
 
 
 def main() -> int:
+    if sys.platform == "win32":
+        try:
+            import ctypes
+
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                APP_USER_MODEL_ID
+            )
+        except Exception:
+            pass
+
     store = Store()
     pending: list[dict] = []
     notifier = Notifier(store)
@@ -135,7 +146,8 @@ def main() -> int:
         # mean quitting — hiding it would leave a process nobody can reach.
         store.set_setting("close_to_tray", "off")
 
-    webview.start(debug="--debug" in sys.argv)
+    icon = icon_path()
+    webview.start(debug="--debug" in sys.argv, icon=str(icon) if icon.exists() else None)
     return 0
 
 

@@ -30,6 +30,13 @@ def data_path(*parts: str) -> Path:
     return bundle_root().joinpath("data", *parts)
 
 
+def icon_path() -> Path:
+    """App icon path for pywebview in source and frozen builds."""
+    if getattr(sys, "_MEIPASS", None):
+        return bundle_root() / "vantage.ico"
+    return Path(__file__).resolve().parent.parent / "docs" / "vantage.ico"
+
+
 def user_data_dir() -> Path:
     base = os.environ.get("APPDATA") or str(Path.home() / "AppData" / "Roaming")
     path = Path(base) / APP_NAME
