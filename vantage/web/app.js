@@ -642,7 +642,7 @@ function applyAlertSettings() {
 /* ---------- events ---------- */
 
 function bindUI() {
-  /* Native window chrome owns movement and resizing. */
+  /* Native window chrome owns movement and resizing in the packaged app. */
   $('win-min').addEventListener('click', () => api()?.window_minimize());
   $('win-close').addEventListener('click', () => api()?.window_close());
   $('win-max').addEventListener('click', async () => {

@@ -21,7 +21,7 @@ _BAND_ORDER = ("unknown", "ok", "watch", "risk")
 # rationed: over a few minutes every device gets covered without any single
 # scan overrunning the interval.
 PORT_SCAN_TTL = 900  # 15 minutes
-PORT_SCAN_BUDGET = 4
+PORT_SCAN_BUDGET = 2
 
 Event = dict
 EventSink = Callable[[Event], None]
@@ -52,6 +52,7 @@ class Monitor:
         self._stop = threading.Event()
         self._wake = threading.Event()
         self._lock = threading.RLock()
+        self._first_scan = True
 
         self.refresh_interfaces()
 
@@ -136,7 +137,12 @@ class Monitor:
         self._emit({"type": "status", "status": self.status()})
         try:
             hosts = interfaces.hosts_for(iface)
-            alive = sweep.sweep_interface(iface, hosts)
+            first_scan = self._first_scan
+            alive = (
+                sweep.neighbor_snapshot_interface(iface, hosts)
+                if first_scan
+                else sweep.sweep_interface(iface, hosts, workers=24, timeout_ms=450)
+            )
             ts = int(time.time())
 
             local_ips = {i["ip"] for i in self.interfaces}
@@ -183,12 +189,15 @@ class Monitor:
 
             self._diff(seen, ts, first_run=first_run)
             self.last_scan_ts = ts
+            self._first_scan = False
         finally:
             self.scanning = False
             self._emit({"type": "status", "status": self.status()})
 
         # Identity work runs after the map is already live, so a slow mDNS round
         # or port scan never delays what the user sees.
+        if first_scan:
+            return self.snapshot()
         try:
             self._enrich(seen, ts)
         except Exception as exc:  # enrichment is a bonus, never a scan failure

@@ -24,6 +24,7 @@ const NetworkMap = (() => {
   let onSelect = () => {};
   let onHover = () => {};
   let running = false;
+  let resizeObserver = null;
 
   const NODE_R = { router: 34, normal: 21 };
 
@@ -62,6 +63,11 @@ const NetworkMap = (() => {
     readColors();
     resize();
     window.addEventListener('resize', resize);
+    resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas.parentElement || canvas);
+    setTimeout(resize, 0);
+    setTimeout(resize, 250);
+    setTimeout(resize, 1000);
 
     sim = d3
       .forceSimulation([])
@@ -109,6 +115,7 @@ const NetworkMap = (() => {
   /* ---------- data ---------- */
 
   function setDevices(devices, gatewayIp) {
+    resize();
     const now = performance.now();
     const seen = new Set();
 

@@ -56,7 +56,7 @@ class JsApi:
 
     # ---------- called from JS ----------
 
-    # The window is frameless, so the title bar's buttons come through here.
+    # Window buttons still route through JS when the custom titlebar is enabled.
 
     def window_minimize(self) -> bool:
         if self.window:

@@ -179,7 +179,7 @@ def read_neighbor_table() -> dict[str, str]:
     return table
 
 
-def sweep(hosts: list[str], workers: int = 96, timeout_ms: int = 700) -> dict[str, dict]:
+def sweep(hosts: list[str], workers: int = 64, timeout_ms: int = 700) -> dict[str, dict]:
     """Ping every host concurrently, then attach MACs from the neighbor cache.
 
     Returns {ip: {"ip", "rtt_ms", "mac"}} for hosts that are up. Hosts that
@@ -208,9 +208,15 @@ def sweep(hosts: list[str], workers: int = 96, timeout_ms: int = 700) -> dict[st
     return alive
 
 
-def sweep_interface(iface: dict, hosts: list[str], timeout_ms: int = 700) -> dict[str, dict]:
+def sweep_interface(
+    iface: dict,
+    hosts: list[str],
+    *,
+    workers: int = 64,
+    timeout_ms: int = 700,
+) -> dict[str, dict]:
     """Sweep a subnet and fold in ARP-only hosts that ignored our ping."""
-    alive = sweep(hosts, timeout_ms=timeout_ms)
+    alive = sweep(hosts, workers=workers, timeout_ms=timeout_ms)
 
     host_set = set(hosts)
     for ip, mac in read_neighbor_table().items():
@@ -219,6 +225,32 @@ def sweep_interface(iface: dict, hosts: list[str], timeout_ms: int = 700) -> dic
 
     # This machine never appears in its own ARP cache, and it may sit on the
     # subnet twice (ethernet + wifi). Fill those MACs in from the NIC table.
+    from . import interfaces as _interfaces
+
+    for local in _interfaces.list_interfaces():
+        lip = local.get("ip")
+        if not lip or lip not in host_set:
+            continue
+        entry = alive.setdefault(lip, {"ip": lip, "rtt_ms": 0.4, "mac": None})
+        if not entry["mac"]:
+            entry["mac"] = local.get("mac")
+        entry["is_local"] = True
+    return alive
+
+
+def neighbor_snapshot_interface(iface: dict, hosts: list[str]) -> dict[str, dict]:
+    """Fast startup inventory from the existing neighbor table.
+
+    This intentionally does not ping the whole subnet. It gives the UI immediate
+    known-device context while the heavier active sweep waits for a later cycle.
+    """
+    host_set = set(hosts)
+    alive = {
+        ip: {"ip": ip, "rtt_ms": None, "mac": mac}
+        for ip, mac in read_neighbor_table().items()
+        if ip in host_set
+    }
+
     from . import interfaces as _interfaces
 
     for local in _interfaces.list_interfaces():

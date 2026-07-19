@@ -10,6 +10,7 @@ an alert nobody gets.
 from __future__ import annotations
 
 import sys
+import threading
 
 import webview
 
@@ -44,6 +45,8 @@ def main() -> int:
     tray_available = False
     quitting = False
     monitor_started = False
+    start_timer: threading.Timer | None = None
+    startup_timer: threading.Timer | None = None
 
     def on_event(event: dict) -> None:
         # Events can fire before the window exists; hold them until it does.
@@ -128,14 +131,18 @@ def main() -> int:
     api.on_paused_changed = lambda paused: tray and tray.set_paused(paused)
 
     def on_start() -> None:
-        nonlocal monitor_started
+        nonlocal monitor_started, start_timer
         if monitor_started:
             return
         monitor_started = True
         for event in pending:
             api.push(event)
         pending.clear()
-        monitor.start()
+        # Give WebView a moment to paint the shell before the first LAN sweep
+        # starts doing concurrent network I/O.
+        start_timer = threading.Timer(1.5, monitor.start)
+        start_timer.daemon = True
+        start_timer.start()
 
     def on_closing() -> bool:
         nonlocal quitting
@@ -149,12 +156,15 @@ def main() -> int:
 
     def on_closed() -> None:
         # Reached when the window is genuinely destroyed, not when hidden.
+        if startup_timer:
+            startup_timer.cancel()
+        if start_timer:
+            start_timer.cancel()
         monitor.stop()
         if tray:
             tray.stop()
         store.close()
 
-    window.events.loaded += on_start
     window.events.closing += on_closing
     window.events.closed += on_closed
 
@@ -163,6 +173,10 @@ def main() -> int:
         # No tray means no background monitoring, so closing the window has to
         # mean quitting — hiding it would leave a process nobody can reach.
         store.set_setting("close_to_tray", "off")
+
+    startup_timer = threading.Timer(1.0, on_start)
+    startup_timer.daemon = True
+    startup_timer.start()
 
     icon = icon_path()
     webview.start(debug="--debug" in sys.argv, icon=str(icon) if icon.exists() else None)
