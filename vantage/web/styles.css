@@ -305,6 +305,16 @@ button { cursor: pointer; border: none; background: none; padding: 0; }
 .btn:active { transform: scale(0.985); }
 .btn svg { width: 15px; height: 15px; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: transparent;
+  box-shadow: 0 8px 22px var(--accent-glow);
+}
+.btn-primary:hover {
+  background: var(--accent-2);
+  border-color: transparent;
+}
 
 .select { position: relative; display: flex; align-items: center; }
 .select select {
@@ -676,6 +686,7 @@ button { cursor: pointer; border: none; background: none; padding: 0; }
   letter-spacing: -0.025em;
 }
 .map-empty p { margin: 0; font-size: var(--text-sm); max-width: 330px; line-height: 1.65; }
+.map-empty .btn { margin-top: var(--sp-2); }
 
 /* A sweep is continuous, so it must be timed linear — an eased loop stalls at the
    top of every cycle and reads as dropped frames rather than as motion. */

@@ -678,6 +678,10 @@ function applyAlertSettings() {
   });
 }
 
+function scanNow() {
+  api()?.rescan();
+}
+
 /* ---------- events ---------- */
 
 function bindUI() {
@@ -702,7 +706,8 @@ function bindUI() {
     renderList();
   });
 
-  $('btn-rescan').addEventListener('click', () => api()?.rescan());
+  $('btn-rescan').addEventListener('click', scanNow);
+  $('btn-empty-scan').addEventListener('click', scanNow);
   $('btn-fit').addEventListener('click', () => NetworkMap.fit());
   $('btn-zoom-in').addEventListener('click', () => NetworkMap.zoomBy(1.25));
   $('btn-zoom-out').addEventListener('click', () => NetworkMap.zoomBy(1 / 1.25));
